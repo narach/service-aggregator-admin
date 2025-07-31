@@ -1,0 +1,20 @@
+.service-groups-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.service-groups-table th,
+.service-groups-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.description-cell {
+  max-width: 50vw;         /* No more than 50% of viewport width */
+  white-space: pre-line;   /* Respects line breaks */
+  word-break: break-word;  /* Breaks long words */
+  overflow-wrap: break-word;
+} 
