@@ -23,6 +23,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_API_BASE_URL: https://aggregator.duckdns.org
 
       - name: Deploy to S3
         uses: jakejarvis/s3-sync-action@v0.5.1
