@@ -1,14 +1,19 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "./AuthContext";
+import { ServiceGroup } from "./types/service";
 import "./ServiceGroupsTable.css"; 
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function ServiceGroupsTable() {
-    const { token } = useContext(AuthContext);
-    const [groups, setGroups] = useState([]);
+    const auth = useContext(AuthContext);
+    if (!auth) {
+        throw new Error("AuthContext is undefined. Make sure AuthProvider is mounted.");
+    }
+    const { token } = auth;
+    const [groups, setGroups] = useState<ServiceGroup[]>([]);
     const [error, setError] = useState("");
-    const [editId, setEditId] = useState(null);
+    const [editId, setEditId] = useState<number | null>(null);
     const [editValues, setEditValues] = useState({ name: "", description: "" });
     const [newGroup, setNewGroup] = useState({ name: "", description: "" });
     const [creating, setCreating] = useState(false);
@@ -27,18 +32,21 @@ export default function ServiceGroupsTable() {
                 const data = await res.json();
                 setGroups(data);
             } catch (err) {
-                setError(err.message);
+                if (err instanceof Error) setError(err.message);
+                else setError("Unknown error");
             }
         };
         fetchGroups();
     }, [token]);
 
-    const handleEdit = (group) => {
+    const handleEdit = (group: ServiceGroup): void => {
         setEditId(group.id);
         setEditValues({ name: group.name, description: group.description });
     };
 
-    const handleChange = (e) => {
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ): void => {
         const { name, value, maxLength } = e.target;
         setEditValues((prev) => ({
           ...prev,
@@ -46,7 +54,7 @@ export default function ServiceGroupsTable() {
         }));
     };
 
-    const handleSave = async(id) => {
+    const handleSave = async (id: number): Promise<void> => {
         setError(""); // Clear previous errors
         try {
             const res = await fetch(`${API_BASE}/api/admin/service-groups/${id}`, {
@@ -73,7 +81,8 @@ export default function ServiceGroupsTable() {
             );
             setEditId(null);
         } catch (err) {
-            setError(err.message);
+            if (err instanceof Error) setError(err.message);
+            else setError("Unknown error"); 
         }
     };
 
@@ -81,7 +90,7 @@ export default function ServiceGroupsTable() {
         setEditId(null);
     };
 
-    const handleDelete = async(id) => {
+    const handleDelete = async (id: number): Promise<void> => {
         setError(""); // Clear previous errors
         if (!window.confirm("Are you sure you want to delete this service group?")) return;
         try {
@@ -97,11 +106,12 @@ export default function ServiceGroupsTable() {
             }
             setGroups((prev) => prev.filter((g) => g.id !== id));
         } catch (err) {
-            setError(err.message);
+            if (err instanceof Error) setError(err.message);
+            else setError("Unknown error");
         }
     }
 
-    const addNewGroup = async (e) => {
+    const addNewGroup = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
         setError("");
         setCreating(true);
@@ -126,7 +136,8 @@ export default function ServiceGroupsTable() {
             setGroups(updatedGroups);
             setNewGroup({ name: "", description: "" });
         } catch (err) {
-            setError(err.message);
+            if (err instanceof Error) setError(err.message);
+            else setError("Unknown error");
         } finally {
             setCreating(false);
         }

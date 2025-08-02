@@ -6,7 +6,11 @@ import ServiceCategories from "./ServiceCategories";
 import ServiceTypes from "./ServiceTypes";
 
 export default function App() {
-  const { token } = useContext(AuthContext);
+  const auth = useContext(AuthContext);
+  if (!auth) {
+    throw new Error("AuthContext is undefined. Make sure AuthProvider is mounted.");
+  }
+  const { token } = auth;
   const [selectedPage, setSelectedPage] = useState("groups");
 
   if (!token) return <Login />;

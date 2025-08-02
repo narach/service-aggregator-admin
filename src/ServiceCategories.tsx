@@ -1,13 +1,18 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "./AuthContext";
 import "./ServiceGroupsTable.css"; // reuse the same table styles
+import { ServiceCategory, ServiceGroup } from "./types/service";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function ServiceCategories() {
-  const { token } = useContext(AuthContext);
-  const [categories, setCategories] = useState([]);
-  const [groups, setGroups] = useState([]);
+  const auth = useContext(AuthContext);
+  if (!auth) {
+    throw new Error("AuthContext is undefined. Make sure AuthProvider is mounted.");
+  }
+  const { token } = auth;
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [groups, setGroups] = useState<ServiceGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState("all");
   const [error, setError] = useState("");
 
@@ -19,10 +24,11 @@ export default function ServiceCategories() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Failed to fetch service groups");
-        const data = await res.json();
+        const data: ServiceGroup[] = await res.json();
         setGroups(data);
       } catch (err) {
-        setError(err.message);
+        if (err instanceof Error) setError(err.message);
+        else setError("Unknown error");
       }
     };
     fetchGroups();
@@ -41,10 +47,11 @@ export default function ServiceCategories() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Failed to fetch service categories");
-        const data = await res.json();
+        const data: ServiceCategory[] = await res.json();
         setCategories(data);
       } catch (err) {
-        setError(err.message);
+        if (err instanceof Error) setError(err.message);
+        else setError("Unknown error");
       }
     };
     fetchCategories();
@@ -63,7 +70,7 @@ export default function ServiceCategories() {
           >
             <option value="all">All</option>
             {groups.map(group => (
-              <option key={group.id} value={group.id}>
+              <option key={group.id} value={group.id.toString()}>
                 {group.name}
               </option>
             ))}
