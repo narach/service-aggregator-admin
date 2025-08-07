@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "./AuthContext";
 import "./ServiceGroupsTable.css"; // reuse the same table styles
 import { ServiceCategory, ServiceGroup } from "./types/service";
+import AddCategoryForm from "./AddCategoryForm";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -35,27 +36,36 @@ export default function ServiceCategories() {
   }, [token]);
 
   // Fetch categories, filtered by group if selected
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setError("");
-        let url = `${API_BASE}/api/admin/service-categories/list`;
-        if (selectedGroup !== "all") {
-          url += `?groupId=${selectedGroup}`;
-        }
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch service categories");
-        const data: ServiceCategory[] = await res.json();
-        setCategories(data);
-      } catch (err) {
-        if (err instanceof Error) setError(err.message);
-        else setError("Unknown error");
+  const fetchCategories = async () => {
+    try {
+      setError("");
+      let url = `${API_BASE}/api/admin/service-categories/list`;
+      if (selectedGroup !== "all") {
+        url += `?groupId=${selectedGroup}`;
       }
-    };
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch service categories");
+      const data: ServiceCategory[] = await res.json();
+      setCategories(data);
+    } catch (err) {
+      if (err instanceof Error) setError(err.message);
+      else setError("Unknown error");
+    }
+  };
+
+  useEffect(() => {
     fetchCategories();
   }, [token, selectedGroup]);
+
+  const handleCategoryAdded = () => {
+    fetchCategories(); // Refresh the categories list
+  };
+
+  const handleError = (errorMessage: string) => {
+    setError(errorMessage);
+  };
 
   return (
     <div>
@@ -98,6 +108,12 @@ export default function ServiceCategories() {
           ))}
         </tbody>
       </table>
+
+      <AddCategoryForm 
+        groups={groups}
+        onCategoryAdded={handleCategoryAdded}
+        onError={handleError}
+      />
     </div>
   );
 }
